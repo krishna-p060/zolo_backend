@@ -109,6 +109,7 @@ These tables establish relationships to maintain data integrity. For example, th
   "userId": 1,
   "availableToBorrow": true
 }
+```
 
 ## Getting Started
 1. **Clone this repository.
