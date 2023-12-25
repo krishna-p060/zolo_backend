@@ -8,6 +8,8 @@ import com.zolobook.eLibrary.service.BookService;
 import com.zolobook.eLibrary.service.BorrowedBookService;
 import com.zolobook.eLibrary.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -22,27 +24,39 @@ public class BorrowedBookController {
     BookService booksService;
 
     @PostMapping("/{book_id}/borrow")
-    public String borrowBook(@PathVariable Integer book_id, @RequestBody BorrowData borrowData) {
-        Books book = booksService.getBookById(book_id);
-        Users borrower = userService.getUserById(borrowData.getBorrowerId());
+    public ResponseEntity<String> borrowBook(@PathVariable Integer book_id, @RequestBody BorrowData borrowData) {
+        try {
+            Books book = booksService.getBookById(book_id);
+            Users borrower = userService.getUserById(borrowData.getBorrowerId());
 
-        BorrowedBooks borrowedBooks = new BorrowedBooks();
-        borrowedBooks.setBook(book);
-        borrowedBooks.setBorrower(borrower);
-        borrowedBooks.setBorrowStartTime(borrowData.getBorrowStartTime());
-        borrowedBooks.setBorrowEndTime(borrowData.getBorrowEndTime());
+            if (book != null && borrower != null) {
+                BorrowedBooks borrowedBooks = new BorrowedBooks();
+                borrowedBooks.setBook(book);
+                borrowedBooks.setBorrower(borrower);
+                borrowedBooks.setBorrowStartTime(borrowData.getBorrowStartTime());
+                borrowedBooks.setBorrowEndTime(borrowData.getBorrowEndTime());
 
-        booksService.updateBookAvailabilityStatus(book_id, false);
-        return borrowedBookService.borrowBook(borrowedBooks);
+                // Update book availability status
+                booksService.updateBookAvailabilityStatus(book_id, false);
+
+                return ResponseEntity.ok(borrowedBookService.borrowBook(borrowedBooks));
+            } else {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid book or borrower ID.");
+            }
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error borrowing book.");
+        }
     }
 
     @PutMapping("/{bookId}/borrow/{borrowId}")
-    public String returnBook(@PathVariable Integer bookId, @PathVariable Integer borrowId) {
-        booksService.updateBookAvailabilityStatus(bookId, true);
-        return borrowedBookService.returnBook(bookId, borrowId);
+    public ResponseEntity<String> returnBook(@PathVariable Integer bookId, @PathVariable Integer borrowId) {
+        try {
+            // Update book availability status
+            booksService.updateBookAvailabilityStatus(bookId, true);
 
+            return ResponseEntity.ok(borrowedBookService.returnBook(bookId, borrowId));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error returning book.");
+        }
     }
-
-
-
 }

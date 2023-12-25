@@ -13,15 +13,29 @@ public class UserService {
     UserRepository userRepository;
 
     public List<Users> getAllUsers() {
-        return userRepository.findAll();
+        try {
+            return userRepository.findAll();
+        } catch (Exception e) {
+            throw new RuntimeException("Error retrieving users.", e);
+        }
     }
 
     public String addUser(Users users) {
-        userRepository.save(users);
-        return "User Added Successfully";
+        try {
+            userRepository.save(users);
+            return "User Added Successfully";
+        } catch (Exception e) {
+            throw new RuntimeException("Error adding user.", e);
+        }
     }
 
     public Users getUserById(Integer id) {
-        return userRepository.findById(id).orElse(null);
+        try {
+            return userRepository.findById(id).orElse(null);
+        } catch (Exception e) {
+            throw new RuntimeException("Error retrieving user by ID.", e);
+        }
     }
+
+    // You can add more methods as needed
 }
